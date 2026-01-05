@@ -1,0 +1,13 @@
+Pillow
+PyMuPDF
+fastapi
+google-generativeai
+openpyxl
+pydantic
+pymilvus
+pytesseract
+python-docx
+python-multipart
+sentence-transformers
+tqdm
+uvicorn

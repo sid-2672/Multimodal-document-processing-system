@@ -15,7 +15,6 @@ import google.generativeai as genai
 app = FastAPI(title="RAG API", version="2.0")
 
 
-# Gemini configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise RuntimeError("Missing GEMINI_API_KEY environment variable. Please set it before running.")
@@ -58,13 +57,11 @@ async def query_document(data: Query):
     Takes a question and a collection name, retrieves relevant chunks from Milvus,
     and uses Gemini to generate an answer based on the retrieved context.
     """
-    # Retrieve relevant chunks
     matches = query_milvus(data.collection_name, data.question)
     
     if not matches:
         return {"answer": "No relevant context found in this document."}
     
-    # Build prompt with retrieved context
     context_block = "\n\n".join(matches)
     prompt = f"""You are a helpful assistant. Use only the context below to answer the user's question.
 
@@ -80,7 +77,6 @@ INSTRUCTIONS:
 - Keep your response concise and accurate.
 """
     
-    # Generate answer using Gemini
     response = gemini_model.generate_content(prompt)
     answer = response.text.strip()
     

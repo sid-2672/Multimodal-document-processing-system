@@ -43,11 +43,9 @@ def init_milvus(collection_name: str, emb_dim: int) -> Collection:
     """
     connections.connect(alias="default", host="localhost", port="19530")
     
-    # Clean slate if collection already exists
     if collection_name in utility.list_collections():
         utility.drop_collection(collection_name)
     
-    # Define schema: ID, chunk_id, text content, and embedding vector
     fields = [
         FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
         FieldSchema(name="chunk_id", dtype=DataType.INT64),
@@ -58,7 +56,6 @@ def init_milvus(collection_name: str, emb_dim: int) -> Collection:
     schema = CollectionSchema(fields, description="RAG file chunks")
     collection = Collection(name=collection_name, schema=schema, shards_num=2)
     
-    # IVF_FLAT index for fast approximate nearest neighbor search
     index_params = {
         "metric_type": "L2",
         "index_type": "IVF_FLAT",
@@ -104,7 +101,6 @@ def extract_pdf(path: str):
             extracted_text.append(text)
             continue
         
-        # No text found, try OCR
         pix = page.get_pixmap(dpi=300)
         img = Image.open(io.BytesIO(pix.tobytes("png")))
         ocr_text = pytesseract.image_to_string(img)
@@ -166,13 +162,11 @@ def ingest_file(file_path: str):
     
     collection_name = generate_collection_name(file_path)
     
-    # Load embedding model
     model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
     emb_dim = len(model.encode(["test"])[0])
     
     collection = init_milvus(collection_name, emb_dim)
     
-    # Extract and chunk text
     sections = extract_text_from_file(file_path)
     all_chunks, embeddings, chunk_ids = [], [], []
     chunk_counter = 0
@@ -190,7 +184,6 @@ def ingest_file(file_path: str):
             chunk_ids.append(chunk_counter)
             chunk_counter += 1
     
-    # Insert into Milvus
     collection.insert([chunk_ids, all_chunks, embeddings])
     collection.flush()
     collection.load()
